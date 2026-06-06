@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Wrapped Anytime — Your Music, Your Moment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080a0f;
+    --surface: #0e1118;
+    --surface2: #151a24;
+    --border: rgba(255,255,255,0.07);
+    --green: #1DB954;
+    --green-dim: rgba(29,185,84,0.15);
+    --green-glow: rgba(29,185,84,0.35);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.12);
+    --blue: #4a9eff;
+    --blue-dim: rgba(74,158,255,0.12);
+    --text: #f0f2f7;
+    --muted: rgba(240,242,247,0.45);
+    --card-bg: rgba(255,255,255,0.03);
+    --r: 16px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+  .blob { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+  .blob-1 { width: 600px; height: 600px; background: rgba(29,185,84,0.08); top: -200px; left: -150px; }
+  .blob-2 { width: 500px; height: 500px; background: rgba(74,158,255,0.06); bottom: -100px; right: -100px; }
+  .blob-3 { width: 400px; height: 400px; background: rgba(245,166,35,0.05); top: 40%; left: 40%; }
+  #app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 20px 80px; }
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 0 24px; border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--green), #4dffa0);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .logo span {
+    color: var(--muted); -webkit-text-fill-color: var(--muted);
+    font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 300;
+    letter-spacing: 0.5px; display: block; margin-top: -4px;
+  }
+  .screen { display: none; animation: fadeUp 0.5s ease both; }
+  .screen.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  .hero { text-align: center; padding: 80px 0 60px; }
+  .hero-eyebrow {
+    display: inline-block; font-size: 11px; font-weight: 500; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--green); border: 1px solid var(--green-dim);
+    background: var(--green-dim); padding: 4px 14px; border-radius: 100px; margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(56px, 10vw, 100px);
+    line-height: 0.95; letter-spacing: 2px; margin-bottom: 24px;
+    background: linear-gradient(160deg, #fff 30%, rgba(255,255,255,0.45));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--green), #4dffa0);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero p { color: var(--muted); font-size: 17px; max-width: 420px; margin: 0 auto 44px; font-weight: 300; }
+  .btn-spotify {
+    display: inline-flex; align-items: center; gap: 12px; background: var(--green);
+    color: #000; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    padding: 16px 36px; border-radius: 100px; border: none; cursor: pointer;
+    text-decoration: none; transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    box-shadow: 0 0 40px var(--green-glow); letter-spacing: 0.3px;
+  }
+  .btn-spotify:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 60px var(--green-glow), 0 8px 24px rgba(0,0,0,0.4); background: #21d460; }
+  .btn-spotify svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .hero-features { display: flex; justify-content: center; gap: 32px; margin-top: 60px; flex-wrap: wrap; }
+  .hero-feat { text-align: center; color: var(--muted); font-size: 13px; }
+  .hero-feat-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+  #loading-screen { text-align: center; padding: 120px 0; }
+  .spinner {
+    width: 48px; height: 48px; border: 2px solid var(--border); border-top-color: var(--green);
+    border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-screen p { color: var(--muted); }
+  .section-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .user-header {
+    display: flex; align-items: center; gap: 18px;
+    padding: 32px 0 28px; border-bottom: 1px solid var(--border); margin-bottom: 40px;
+  }
+  .user-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--green); object-fit: cover; flex-shrink: 0; }
+  .avatar-placeholder { width: 60px; height: 60px; border-radius: 50%; background: var(--green-dim); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .user-info h2 { font-size: 20px; font-weight: 500; }
+  .user-info p { color: var(--muted); font-size: 13px; }
+  .logout-btn { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: border-color 0.2s, color 0.2s; }
+  .logout-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 48px; }
+  @media (max-width: 560px) { .stats-row { grid-template-columns: 1fr; } }
+  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 22px 20px; position: relative; overflow: hidden; transition: border-color 0.25s, background 0.25s; }
+  .stat-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--green-dim), transparent); opacity: 0; transition: opacity 0.3s; }
+  .stat-card:hover { border-color: rgba(29,185,84,0.3); }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 42px; line-height: 1; color: var(--green); letter-spacing: 1px; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 0.5px; }
+  .lists-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 48px; }
+  @media (max-width: 640px) { .lists-grid { grid-template-columns: 1fr; } }
+  .list-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; }
+  .list-card h3 { font-size: 13px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+  .track-item, .artist-item { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); transition: opacity 0.2s; animation: fadeUp 0.4s ease both; }
+  .track-item:last-child, .artist-item:last-child { border-bottom: none; }
+  .track-item:hover, .artist-item:hover { opacity: 0.8; }
+  .item-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); width: 24px; text-align: center; flex-shrink: 0; }
+  .item-img { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: var(--surface2); flex-shrink: 0; }
+  .artist-img { border-radius: 50%; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .access-section { margin-top: 8px; }
+  .access-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1px; margin-bottom: 8px; }
+  .access-sub { color: var(--muted); font-size: 15px; font-weight: 300; margin-bottom: 28px; }
+  .access-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 660px) { .access-cards { grid-template-columns: 1fr; } }
+  .access-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 28px 22px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s; }
+  .access-card:hover { transform: translateY(-4px); }
+  .access-card.card-free { border-color: rgba(29,185,84,0.25); }
+  .access-card.card-free:hover { box-shadow: 0 20px 50px rgba(29,185,84,0.15); border-color: var(--green); }
+  .access-card.card-pay { border-color: rgba(245,166,35,0.25); }
+  .access-card.card-pay:hover { box-shadow: 0 20px 50px rgba(245,166,35,0.15); border-color: var(--amber); }
+  .access-card.card-referral { border-color: rgba(74,158,255,0.25); }
+  .access-card.card-referral:hover { box-shadow: 0 20px 50px rgba(74,158,255,0.15); border-color: var(--blue); }
+  .access-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 100px; align-self: flex-start; }
+  .badge-free { background: var(--green-dim); color: var(--green); }
+  .badge-pay { background: var(--amber-dim); color: var(--amber); }
+  .badge-referral { background: var(--blue-dim); color: var(--blue); }
+  .access-icon { font-size: 32px; }
+  .access-card h3 { font-size: 18px; font-weight: 600; line-height: 1.2; }
+  .access-card p { font-size: 13px; color: var(--muted); font-weight: 300; line-height: 1.6; flex: 1; }
+  .btn-access { width: 100%; padding: 13px 0; border-radius: 10px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; transition: opacity 0.2s, transform 0.15s; letter-spacing: 0.3px; }
+  .btn-access:hover { opacity: 0.85; transform: scale(0.98); }
+  .btn-access:active { transform: scale(0.96); }
+  .btn-free { background: var(--green); color: #000; }
+  .btn-pay { background: var(--amber); color: #000; }
+  .btn-referral { background: var(--blue); color: #000; }
+  .panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 36px; max-width: 440px; width: 100%; position: relative; animation: fadeUp 0.3s ease; }
+  .panel-close { position: absolute; top: 16px; right: 16px; background: var(--surface2); border: none; color: var(--muted); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: color 0.2s, background 0.2s; }
+  .panel-close:hover { color: var(--text); background: var(--border); }
+  .panel h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+  .panel p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .panel-icon { font-size: 40px; margin-bottom: 16px; display: block; }
+  .queue-pos { background: var(--green-dim); border: 1px solid rgba(29,185,84,0.3); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
+  .queue-num { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--green); line-height: 1; }
+  .queue-label { font-size: 12px; color: var(--muted); }
+  .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .input-group label { font-size: 13px; color: var(--muted); }
+  .input-group input { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+  .input-group input:focus { border-color: var(--green); }
+  .btn-primary { width: 100%; padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; background: var(--green); color: #000; transition: opacity 0.2s; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-pay-primary { background: var(--amber); }
+  .btn-ref-primary { background: var(--blue); }
+  .ref-code-box { background: var(--surface2); border: 1px dashed rgba(74,158,255,0.4); border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px; }
+  .ref-code { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 4px; color: var(--blue); }
+  .ref-code-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .ref-progress { display: flex; gap: 8px; margin-bottom: 20px; }
+  .ref-dot { flex: 1; height: 6px; border-radius: 3px; background: var(--border); transition: background 0.4s; }
+  .ref-dot.filled { background: var(--blue); }
+  .success-state { text-align: center; padding: 12px 0; }
+  .success-icon { font-size: 52px; margin-bottom: 16px; display: block; }
+  .success-state h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .success-state p { color: var(--muted); font-size: 14px; }
+  .stripe-note { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 12px; justify-content: center; }
+  .time-toggle { display: inline-flex; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 20px; gap: 2px; }
+  .time-btn { background: none; border: none; color: var(--muted); padding: 7px 16px; border-radius: 7px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 13px; transition: background 0.2s, color 0.2s; }
+  .time-btn.active { background: var(--green); color: #000; font-weight: 600; }
+  .error-msg { background: rgba(255,70,70,0.1); border: 1px solid rgba(255,70,70,0.25); color: #ff7070; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .track-item:nth-child(1),.artist-item:nth-child(1){animation-delay:0.05s}
+  .track-item:nth-child(2),.artist-item:nth-child(2){animation-delay:0.1s}
+  .track-item:nth-child(3),.artist-item:nth-child(3){animation-delay:0.15s}
+  .track-item:nth-child(4),.artist-item:nth-child(4){animation-delay:0.2s}
+  .track-item:nth-child(5),.artist-item:nth-child(5){animation-delay:0.25s}
+  .badge-popular { position: absolute; top: 16px; right: 16px; background: var(--amber); color: #000; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; }
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div id="app">
+  <nav>
+    <div class="logo">
+      Wrapped Anytime
+      <span>wrappedanytime.com</span>
+    </div>
+  </nav>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="screen active">
+    <div class="hero">
+      <div class="hero-eyebrow">🎵 Your Spotify Stats, Anytime</div>
+      <h1>Your Music,<br/><em>Uncovered.</em></h1>
+      <p>See your top tracks, top artists, and total listening time — no waiting for December.</p>
+      <button class="btn-spotify" onclick="loginWithSpotify()">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+        Connect with Spotify
+      </button>
+      <div class="hero-features">
+        <div class="hero-feat"><span class="hero-feat-icon">🎧</span>Top Tracks</div>
+        <div class="hero-feat"><span class="hero-feat-icon">🎤</span>Top Artists</div>
+        <div class="hero-feat"><span class="hero-feat-icon">⏱️</span>Minutes Listened</div>
+        <div class="hero-feat"><span class="hero-feat-icon">🔒</span>Privacy First</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen" class="screen">
+    <div style="padding:120px 0;text-align:center;">
+      <div class="spinner"></div>
+      <p>Fetching your music data…</p>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="results-screen" class="screen">
+    <div class="user-header" id="user-header"></div>
+    <div class="section-label">Your Listening Period</div>
+    <div class="time-toggle">
+      <button class="time-btn" onclick="setTimeRange('short_term')">4 Weeks</button>
+      <button class="time-btn active" onclick="setTimeRange('medium_term')">6 Months</button>
+      <button class="time-btn" onclick="setTimeRange('long_term')">All Time</button>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="lists-grid">
+      <div class="list-card">
+        <h3>Top Tracks</h3>
+        <div id="tracks-list"></div>
+      </div>
+      <div class="list-card">
+        <h3>Top Artists</h3>
+        <div id="artists-list"></div>
+      </div>
+    </div>
+    <div class="access-section">
+      <div class="section-label">Unlock Your Full Report</div>
+      <div class="access-title">Choose Your Access</div>
+      <div class="access-sub">Get your shareable Wrapped card, full stats breakdown, and personalised insights.</div>
+      <div class="access-cards">
+        <div class="access-card card-free">
+          <div class="access-badge badge-free">Free</div>
+          <div class="access-icon">⏳</div>
+          <h3>Join Free Queue</h3>
+          <p>We'll send your full Wrapped card within 24 hours. Free, no strings attached.</p>
+          <button class="btn-access btn-free" onclick="openPanel('queue')">Join the Queue</button>
+        </div>
+        <div class="access-card card-pay" style="position:relative;">
+          <div class="badge-popular">Most Popular</div>
+          <div class="access-badge badge-pay">99p</div>
+          <div class="access-icon">⚡</div>
+          <h3>Get It Now</h3>
+          <p>Skip the wait. Pay 99p and instantly receive your full personalised Wrapped card.</p>
+          <button class="btn-access btn-pay" onclick="openPanel('pay')">Pay 99p — Instant</button>
+        </div>
+        <div class="access-card card-referral">
+          <div class="access-badge badge-referral">Free</div>
+          <div class="access-icon">🔗</div>
+          <h3>Refer 3 Friends</h3>
+          <p>Share your referral link. Once 3 friends sign up, your full report unlocks automatically.</p>
+          <button class="btn-access btn-referral" onclick="openPanel('referral')">Get Referral Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANELS -->
+<div id="panel-overlay" class="panel-overlay" style="display:none;" onclick="closePanel(event)">
+
+  <div id="panel-queue" class="panel" style="display:none;">
+    <button class="panel-close" onclick="closePanelDirect()">&#x2715;</button>
+    <span class="panel-icon">&#x23F3;</span>
+    <h2>Join the Free Queue</h2>
+    <p>Enter your email and we'll deliver your full Wrapped card within 24 hours.</p>
+    <div id="queue-success" class="success-state" style="display:none;">
+      <span class="success-icon">&#x1F389;</span>
+      <h3>You're in the queue!</h3>
+      <p>Check your inbox within 24 hours. Your Wrapped card is being prepared.</p>
+    </div>
+    <div id="queue-form">
+      <div class="queue-pos">
+        <div class="queue-num" id="queue-number">—</div>
+        <div class="queue-label">your position in queue</div>
+      </div>
+      <div class="input-group">
+        <label>Email address</label>
+        <input type="email" id="queue-email" placeholder="you@example.com"/>
+      </div>
+      <div class="error-msg" id="queue-error">Please enter a valid email address.</div>
+      <button class="btn-primary" onclick="submitQueue()">Secure My Spot</button>
+    </div>
+  </div>
+
+  <div id="panel-pay" class="panel" style="display:none;">
+    <button class="panel-close" onclick="closePanelDirect()">&#x2715;</button>
+    <span class="panel-icon">&#x26A1;</span>
+    <h2>Instant Access — 99p</h2>
+    <p>One-time payment. No subscription. Receive your full Wrapped card immediately after payment.</p>
+    <div id="pay-success" class="success-state" style="display:none;">
+      <span class="success-icon">&#x2705;</span>
+      <h3>Payment Successful!</h3>
+      <p>Your Wrapped card is on its way to your inbox. Check your email now.</p>
+    </div>
+    <div id="pay-form">
+      <div class="input-group">
+        <label>Email address</label>
+        <input type="email" id="pay-email" placeholder="you@example.com"/>
+      </div>
+      <div class="error-msg" id="pay-error">Please enter a valid email address.</div>
+      <button class="btn-primary btn-pay-primary" onclick="initiateStripeCheckout()">Pay 99p with Stripe</button>
+      <div class="stripe-note">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Secure payment via Stripe. Card details never touch our servers.
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-referral" class="panel" style="display:none;">
+    <button class="panel-close" onclick="closePanelDirect()">&#x2715;</button>
+    <span class="panel-icon">&#x1F517;</span>
+    <h2>Refer 3 Friends</h2>
+    <p>Share your unique link. When 3 friends sign up, your full Wrapped card unlocks automatically — free.</p>
+    <div id="ref-success" class="success-state" style="display:none;">
+      <span class="success-icon">&#x1F38A;</span>
+      <h3>All 3 Referred!</h3>
+      <p>Congratulations! Your full Wrapped card is being generated and will arrive shortly.</p>
+    </div>
+    <div id="ref-form">
+      <div class="ref-code-box">
+        <div class="ref-code" id="ref-code-display">—</div>
+        <div class="ref-code-sub" id="ref-link-display">wrappedanytime.com/r/—</div>
+      </div>
+      <div style="margin-bottom:8px;font-size:13px;color:var(--muted);">Friends referred: <span id="ref-count">0</span>/3</div>
+      <div class="ref-progress">
+        <div class="ref-dot" id="ref-dot-1"></div>
+        <div class="ref-dot" id="ref-dot-2"></div>
+        <div class="ref-dot" id="ref-dot-3"></div>
+      </div>
+      <div class="input-group">
+        <label>Your email (to receive the card)</label>
+        <input type="email" id="ref-email" placeholder="you@example.com"/>
+      </div>
+      <div class="error-msg" id="ref-error">Please enter a valid email address.</div>
+      <button class="btn-primary btn-ref-primary" onclick="generateReferral()">Generate My Link</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CLIENT_ID = '01ee768e43784acbb3db9c3b6b60ea74';
+const REDIRECT_URI = 'http://[::1]:8000/callback';
+const SCOPES = 'user-top-read user-read-private user-read-email';
+
+let accessToken = null;
+let userData = null;
+let topTracks = [];
+let topArtists = [];
+let currentTimeRange = 'medium_term';
+let referralCode = null;
+let referralCount = 0;
+let referralTimer = null;
+
+function generateCodeVerifier(length = 128) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const arr = new Uint8Array(length);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => chars[b % chars.length]).join('');
+}
+
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function loginWithSpotify() {
+  const verifier = generateCodeVerifier();
+  const challenge = await generateCodeChallenge(verifier);
+  sessionStorage.setItem('pkce_verifier', verifier);
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: REDIRECT_URI,
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
+    scope: SCOPES,
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params;
+}
+
+async function exchangeCodeForToken(code) {
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  const body = new URLSearchParams({
+    client_id: CLIENT_ID,
+    grant_type: 'authorization_code',
+    code,
+    redirect_uri: REDIRECT_URI,
+    code_verifier: verifier,
+  });
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  if (!res.ok) throw new Error('Token exchange failed');
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function spotifyFetch(endpoint) {
+  const res = await fetch('https://api.spotify.com/v1' + endpoint, {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  });
+  if (!res.ok) throw new Error('Spotify API error: ' + res.status);
+  return res.json();
+}
+
+async function loadData() {
+  showScreen('loading-screen');
+  try {
+    const [user, tracksData, artistsData] = await Promise.all([
+      spotifyFetch('/me'),
+      spotifyFetch('/me/top/tracks?limit=5&time_range=' + currentTimeRange),
+      spotifyFetch('/me/top/artists?limit=5&time_range=' + currentTimeRange)
+    ]);
+    userData = user;
+    topTracks = tracksData.items || [];
+    topArtists = artistsData.items || [];
+    renderResults();
+    showScreen('results-screen');
+  } catch (e) {
+    console.error(e);
+    alert('Failed to load your Spotify data. Please try logging in again.');
+    showScreen('login-screen');
+  }
+}
+
+async function setTimeRange(range) {
+  currentTimeRange = range;
+  document.querySelectorAll('.time-btn').forEach(b => {
+    const map = { short_term: '4 Weeks', medium_term: '6 Months', long_term: 'All Time' };
+    b.classList.toggle('active', b.textContent.trim() === map[range]);
+  });
+  try {
+    const [tracksData, artistsData] = await Promise.all([
+      spotifyFetch('/me/top/tracks?limit=5&time_range=' + currentTimeRange),
+      spotifyFetch('/me/top/artists?limit=5&time_range=' + currentTimeRange)
+    ]);
+    topTracks = tracksData.items || [];
+    topArtists = artistsData.items || [];
+    renderLists();
+    updateStats();
+  } catch(e) { console.error(e); }
+}
+
+function renderResults() {
+  renderUserHeader();
+  updateStats();
+  renderLists();
+}
+
+function renderUserHeader() {
+  const el = document.getElementById('user-header');
+  const imgSrc = userData.images && userData.images[0] && userData.images[0].url;
+  const avatarHTML = imgSrc
+    ? '<img class="user-avatar" src="' + imgSrc + '" alt=""/>'
+    : '<div class="avatar-placeholder">🎵</div>';
+  el.innerHTML = avatarHTML +
+    '<div class="user-info"><h2>' + escHtml(userData.display_name || userData.id) + '</h2>' +
+    '<p>' + escHtml(userData.email || '') + ' &middot; ' + ((userData.followers && userData.followers.total) || 0).toLocaleString() + ' followers</p></div>' +
+    '<button class="logout-btn" onclick="logout()">Logout</button>';
+}
+
+function updateStats() {
+  const statsEl = document.getElementById('stats-row');
+  const avgMs = topTracks.length
+    ? topTracks.reduce(function(s, t) { return s + (t.duration_ms || 210000); }, 0) / topTracks.length
+    : 210000;
+  const estimatedMinutes = Math.round((avgMs / 60000) * 240);
+  const topGenre = (topArtists[0] && topArtists[0].genres && topArtists[0].genres[0]) || 'Various';
+  statsEl.innerHTML =
+    '<div class="stat-card"><div class="stat-num">' + topTracks.length + '</div><div class="stat-label">Top Tracks Analysed</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + estimatedMinutes.toLocaleString() + '</div><div class="stat-label">Est. Minutes Listened</div></div>' +
+    '<div class="stat-card"><div class="stat-num" style="font-size:20px;line-height:2;">' + escHtml(capitalize(topGenre)) + '</div><div class="stat-label">Your Top Genre</div></div>';
+}
+
+function renderLists() {
+  const tracksEl = document.getElementById('tracks-list');
+  const artistsEl = document.getElementById('artists-list');
+  tracksEl.innerHTML = topTracks.length ? topTracks.map(function(t, i) {
+    const img = (t.album && t.album.images && t.album.images[0] && t.album.images[0].url)
+      ? '<img class="item-img" src="' + t.album.images[0].url + '" alt=""/>'
+      : '<div class="item-img"></div>';
+    const artists = (t.artists || []).map(function(a) { return escHtml(a.name); }).join(', ');
+    return '<div class="track-item"><div class="item-num">' + (i+1) + '</div>' + img +
+      '<div class="item-info"><div class="item-name">' + escHtml(t.name) + '</div><div class="item-sub">' + artists + '</div></div></div>';
+  }).join('') : '<div style="color:var(--muted);font-size:13px;padding:10px 0;">No tracks found for this period.</div>';
+
+  artistsEl.innerHTML = topArtists.length ? topArtists.map(function(a, i) {
+    const img = (a.images && a.images[0] && a.images[0].url)
+      ? '<img class="item-img artist-img" src="' + a.images[0].url + '" alt=""/>'
+      : '<div class="item-img artist-img"></div>';
+    const genre = capitalize((a.genres && a.genres[0]) || 'Artist');
+    return '<div class="artist-item"><div class="item-num">' + (i+1) + '</div>' + img +
+      '<div class="item-info"><div class="item-name">' + escHtml(a.name) + '</div><div class="item-sub">' + escHtml(genre) + '</div></div></div>';
+  }).join('') : '<div style="color:var(--muted);font-size:13px;padding:10px 0;">No artists found for this period.</div>';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+function logout() {
+  accessToken = null; userData = null;
+  sessionStorage.clear();
+  showScreen('login-screen');
+}
+
+function openPanel(type) {
+  var overlay = document.getElementById('panel-overlay');
+  overlay.style.display = 'flex';
+  ['queue','pay','referral'].forEach(function(p) {
+    document.getElementById('panel-' + p).style.display = (p === type) ? 'block' : 'none';
+  });
+  if (type === 'queue') {
+    document.getElementById('queue-number').textContent = Math.floor(Math.random() * 200) + 50;
+  }
+  if (type === 'referral' && !referralCode) {
+    referralCode = generateRefCode();
+    document.getElementById('ref-code-display').textContent = referralCode;
+    document.getElementById('ref-link-display').textContent = 'wrappedanytime.com/r/' + referralCode;
+    updateRefDots();
+  }
+}
+
+function closePanel(e) {
+  if (e && e.target !== document.getElementById('panel-overlay')) return;
+  document.getElementById('panel-overlay').style.display = 'none';
+}
+
+function closePanelDirect() {
+  document.getElementById('panel-overlay').style.display = 'none';
+}
+
+function submitQueue() {
+  var email = document.getElementById('queue-email').value.trim();
+  var errEl = document.getElementById('queue-error');
+  if (!isValidEmail(email)) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  document.getElementById('queue-form').style.display = 'none';
+  document.getElementById('queue-success').style.display = 'block';
+}
+
+function initiateStripeCheckout() {
+  var email = document.getElementById('pay-email').value.trim();
+  var errEl = document.getElementById('pay-error');
+  if (!isValidEmail(email)) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  // PRODUCTION: POST to your server endpoint to create Stripe Checkout Session, then redirect to session.url
+  // Example: fetch('/create-checkout-session', { method:'POST', body: JSON.stringify({ email, price:'99p' }) })
+  //   .then(r => r.json()).then(s => window.location.href = s.url)
+  alert('Stripe integration note:\n\nIn production, your server creates a Stripe Checkout Session for 99p and returns a redirect URL.\n\nSimulating success for this demo...');
+  document.getElementById('pay-form').style.display = 'none';
+  document.getElementById('pay-success').style.display = 'block';
+}
+
+function generateReferral() {
+  var email = document.getElementById('ref-email').value.trim();
+  var errEl = document.getElementById('ref-error');
+  if (!isValidEmail(email)) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  var link = 'https://wrappedanytime.com/r/' + referralCode;
+  if (navigator.clipboard) navigator.clipboard.writeText(link).catch(function(){});
+  simulateReferrals();
+}
+
+function simulateReferrals() {
+  if (referralTimer) return;
+  var tick = function() {
+    if (referralCount >= 3) {
+      document.getElementById('ref-form').style.display = 'none';
+      document.getElementById('ref-success').style.display = 'block';
+      referralTimer = null;
+      return;
+    }
+    referralCount++;
+    document.getElementById('ref-count').textContent = referralCount;
+    updateRefDots();
+    referralTimer = setTimeout(tick, referralCount < 3 ? 2000 : 500);
+  };
+  referralTimer = setTimeout(tick, 1200);
+}
+
+function updateRefDots() {
+  for (var i = 1; i <= 3; i++) {
+    document.getElementById('ref-dot-' + i).classList.toggle('filled', i <= referralCount);
+  }
+}
+
+function generateRefCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var arr = new Uint8Array(8);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(function(b) { return chars[b % chars.length]; }).join('');
+}
+
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+(async function() {
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  var error = params.get('error');
+  if (error) { console.error('Spotify auth error:', error); showScreen('login-screen'); return; }
+  if (code) {
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      accessToken = await exchangeCodeForToken(code);
+      sessionStorage.removeItem('pkce_verifier');
+      await loadData();
+    } catch(e) {
+      console.error(e);
+      showScreen('login-screen');
+    }
+    return;
+  }
+  showScreen('login-screen');
+})();
+</script>
+</body>
+</html>
