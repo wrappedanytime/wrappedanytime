@@ -423,7 +423,7 @@ async function loginWithSpotify() {
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     response_type: 'code',
-    : ,
+    redirect_uri: REDIRECT_URI,
     code_challenge_method: 'S256',
     code_challenge: challenge,
     scope: SCOPES,
@@ -437,7 +437,7 @@ async function exchangeCodeForToken(code) {
     client_id: CLIENT_ID,
     grant_type: 'authorization_code',
     code,
-    : ,
+    redirect_uri: REDIRECT_URI,
     code_verifier: verifier,
   });
   const res = await fetch('https://accounts.spotify.com/api/token', {
