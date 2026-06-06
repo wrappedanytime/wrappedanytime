@@ -390,7 +390,7 @@
 
 <script>
 const CLIENT_ID = '01ee768e43784acbb3db9c3b6b60ea74';
-const REDIRECT_URI = 'https://wrappedanytime-app.vercel.app';
+const  = 'https://wrappedanytime-app.vercel.app';
 const SCOPES = 'user-top-read user-read-private user-read-email';
 
 let accessToken = null;
@@ -423,7 +423,7 @@ async function loginWithSpotify() {
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     response_type: 'code',
-    redirect_uri: REDIRECT_URI,
+    : ,
     code_challenge_method: 'S256',
     code_challenge: challenge,
     scope: SCOPES,
@@ -437,7 +437,7 @@ async function exchangeCodeForToken(code) {
     client_id: CLIENT_ID,
     grant_type: 'authorization_code',
     code,
-    redirect_uri: REDIRECT_URI,
+    : ,
     code_verifier: verifier,
   });
   const res = await fetch('https://accounts.spotify.com/api/token', {
